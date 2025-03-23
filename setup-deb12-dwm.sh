@@ -63,14 +63,14 @@ if contains "dwm"; then
     git clone https://github.com/bakkeby/dwm-flexipatch dwm
     cd dwm
 
-    # Activer le layout FLEXTILE_DELUXE
+    # Activer les gaps dans le config.h
     sed -i 's|.*#define FLEXTILE_DELUXE_LAYOUT.*|#define FLEXTILE_DELUXE_LAYOUT 1|' config.def.h
-
+    sed -i 's|.*#define VANITYGAPS_PATCH.*|#define VANITYGAPS_PATCH 1|' config.def.h
+    
     make && make install
 
     echo 'exec dwm' > /home/$USERNAME/.xinitrc
     chown $USERNAME:$USERNAME /home/$USERNAME/.xinitrc
-    # echo 'exec dwm' > ~/.xinitrc
 fi
 
 if contains "multimedia"; then
