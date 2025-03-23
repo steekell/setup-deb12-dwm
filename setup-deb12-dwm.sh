@@ -6,19 +6,18 @@
 
 set -e
 
-# Définir l'utilisateur à configurer
-read -p "Entrez le nom d'utilisateur à configurer : " USERNAME
-
-# Vérification de dépendances pour l'interface TUI
-if ! command -v whiptail &>/dev/null; then
-    echo "whiptail est requis. Installation..."
-    apt update && apt install -y whiptail
-fi
-
 # ---------------------------
-# Boucle principale de la checklist
+# Boucle principale pour relancer si aucune option n'est sélectionnée
 # ---------------------------
 while true; do
+  # Définir l'utilisateur à configurer à chaque boucle
+  USERNAME=$(whiptail --inputbox "Entrez le nom de l'utilisateur à configurer :" 10 60 --title "Utilisateur" 3>&1 1>&2 2>&3)
+
+  if [ -z "$USERNAME" ]; then
+    whiptail --title "Erreur" --msgbox "Vous devez renseigner un nom d'utilisateur valide." 10 60
+    continue
+  fi
+
   OPTIONS=$(whiptail --title "Installation Debian 12 personnalisée" --checklist \ 
   "Choisissez les options à activer avec Espace puis Entrée :" 20 78 13 \ 
   "wifi" "Activer le Wi-Fi" OFF \ 
@@ -98,6 +97,7 @@ if contains "dwm"; then
 
     # Activer uniquement le layout FLEXTILE_DELUXE
     sed -i 's|.*#define FLEXTILE_DELUXE_LAYOUT.*|#define FLEXTILE_DELUXE_LAYOUT 1|' config.def.h
+    sed -i 's|.*#define VANITYGAPS_PATCH.*|// #define VANITYGAPS_PATCH|' config.def.h
 
     make && make install
 
