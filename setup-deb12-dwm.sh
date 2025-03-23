@@ -19,13 +19,14 @@ fi
 # Affichage de la checklist
 # ---------------------------
 OPTIONS=$(whiptail --title "Installation Debian 12 personnalisée" --checklist \ 
-"Choisissez les options à activer avec Espace puis Entrée :" 20 78 12 \ 
+"Choisissez les options à activer avec Espace puis Entrée :" 20 78 13 \ 
 "wifi" "Activer le Wi-Fi" OFF \ 
 "bluetooth" "Activer le Bluetooth" OFF \ 
 "fingerprint" "Activer le lecteur d'empreintes" OFF \ 
 "nvme" "Utiliser le SSD NVMe" ON \ 
 "i5" "Optimiser pour CPU i5-10210U" OFF \ 
 "batterie" "Optimisation batterie (TLP + réglages ACPI)" OFF \ 
+"sudo" "Ajouter l'utilisateur au groupe sudo" ON \ 
 "dwm" "Installer DWM avec gaps depuis les sources" ON \ 
 "multimedia" "Configurer les touches multimédia (volume, luminosité...)" ON \ 
 3>&1 1>&2 2>&3)
@@ -38,8 +39,10 @@ contains() {
 # Modules d'installation
 # ---------------------------
 
-# Ajout au groupe sudo
-usermod -aG sudo "$USERNAME"
+if contains "sudo"; then
+    echo "➕ Ajout de $USERNAME au groupe sudo..."
+    usermod -aG sudo "$USERNAME"
+fi
 
 if contains "wifi"; then
     echo "🔧 Installation et configuration du Wi-Fi..."
@@ -86,6 +89,7 @@ if contains "dwm"; then
 
     # Activer uniquement le layout FLEXTILE_DELUXE
     sed -i 's|.*#define FLEXTILE_DELUXE_LAYOUT.*|#define FLEXTILE_DELUXE_LAYOUT 1|' config.def.h
+    sed -i 's|.*#define VANITYGAPS_PATCH.*|// #define VANITYGAPS_PATCH|' config.def.h
 
     make && make install
 
