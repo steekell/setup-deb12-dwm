@@ -39,11 +39,6 @@ contains() {
 # Modules d'installation
 # ---------------------------
 
-if contains "sudo"; then
-    echo "➕ Ajout de $USERNAME au groupe sudo..."
-    usermod -aG sudo "$USERNAME"
-fi
-
 if contains "wifi"; then
     echo "🔧 Installation et configuration du Wi-Fi..."
     apt install -y firmware-iwlwifi network-manager
@@ -78,6 +73,11 @@ if contains "batterie"; then
     apt install -y tlp tlp-rdw acpi acpid
     systemctl enable tlp
     systemctl start tlp
+fi
+
+if contains "sudo"; then
+    echo "➕ Ajout de $USERNAME au groupe sudo..."
+    usermod -aG sudo "$USERNAME"
 fi
 
 if contains "dwm"; then
