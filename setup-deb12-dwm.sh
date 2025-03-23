@@ -5,10 +5,7 @@
 # ---------------------------
 
 set -e
-
-# Définir l'utilisateur à configurer
-read -p "Entrez le nom d'utilisateur à configurer : " USERNAME
-
+ 
 # Vérification de dépendances pour l'interface TUI
 if ! command -v whiptail &>/dev/null; then
     echo "whiptail est requis. Installation..."
@@ -26,7 +23,6 @@ OPTIONS=$(whiptail --title "Installation Debian 12 personnalisée" --checklist \
 "nvme" "Utiliser le SSD NVMe" ON \ 
 "i5" "Optimiser pour CPU i5-10210U" OFF \ 
 "batterie" "Optimisation batterie (TLP + réglages ACPI)" OFF \ 
-"sudo" "Ajouter l'utilisateur au groupe sudo" ON \ 
 "dwm" "Installer DWM avec gaps depuis les sources" ON \ 
 "multimedia" "Configurer les touches multimédia (volume, luminosité...)" ON \ 
 3>&1 1>&2 2>&3)
@@ -73,11 +69,6 @@ if contains "batterie"; then
     apt install -y tlp tlp-rdw acpi acpid
     systemctl enable tlp
     systemctl start tlp
-fi
-
-if contains "sudo"; then
-    echo "➕ Ajout de $USERNAME au groupe sudo..."
-    usermod -aG sudo "$USERNAME"
 fi
 
 if contains "dwm"; then
