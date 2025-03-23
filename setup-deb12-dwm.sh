@@ -6,6 +6,7 @@ read -p "Entrez le nom d'utilisateur à configurer : " USERNAME
 # Affiche une checklist interactive
 OPTIONS=$(whiptail --title "Installation Debian 12 personnalisée" --checklist \
 "Choisissez les options à activer avec Espace puis Entrée :" 20 78 12 \
+"sudo" "Ajouter l'utilisateur au groupe sudo" OFF \
 "wifi" "Activer le Wi-Fi" OFF \
 "bluetooth" "Activer le Bluetooth" OFF \
 "fingerprint" "Activer le lecteur d'empreintes" OFF \
@@ -22,6 +23,11 @@ contains() {
 }
 
 # ---- Modules d'installation ----
+
+if contains "sudo"; then
+    echo "➕ Ajout de $USERNAME au groupe sudo..."
+    usermod -aG sudo "$USERNAME"
+fi
 
 if contains "wifi"; then
     echo "🔧 Installation et configuration du Wi-Fi..."
