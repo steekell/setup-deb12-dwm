@@ -6,6 +6,9 @@
 
 set -e
 
+# Définir l'utilisateur à configurer
+read -p "Entrez le nom d'utilisateur à configurer : " USERNAME
+
 # Vérification de dépendances pour l'interface TUI
 if ! command -v whiptail &>/dev/null; then
     echo "whiptail est requis. Installation..."
@@ -13,19 +16,29 @@ if ! command -v whiptail &>/dev/null; then
 fi
 
 # ---------------------------
-# Affichage de la checklist
+# Boucle principale de la checklist
 # ---------------------------
-OPTIONS=$(whiptail --title "Installation Debian 12 personnalisée" --checklist \ 
-"Choisissez les options à activer avec Espace puis Entrée :" 20 78 12 \ 
-"wifi" "Activer le Wi-Fi" OFF \ 
-"bluetooth" "Activer le Bluetooth" OFF \ 
-"fingerprint" "Activer le lecteur d'empreintes" OFF \ 
-"nvme" "Utiliser le SSD NVMe" ON \ 
-"i5" "Optimiser pour CPU i5-10210U" OFF \ 
-"batterie" "Optimisation batterie (TLP + réglages ACPI)" OFF \ 
-"dwm" "Installer DWM avec gaps depuis les sources" ON \ 
-"multimedia" "Configurer les touches multimédia (volume, luminosité...)" ON \ 
-3>&1 1>&2 2>&3)
+while true; do
+  OPTIONS=$(whiptail --title "Installation Debian 12 personnalisée" --checklist \ 
+  "Choisissez les options à activer avec Espace puis Entrée :" 20 78 13 \ 
+  "wifi" "Activer le Wi-Fi" OFF \ 
+  "bluetooth" "Activer le Bluetooth" OFF \ 
+  "fingerprint" "Activer le lecteur d'empreintes" OFF \ 
+  "nvme" "Utiliser le SSD NVMe" ON \ 
+  "i5" "Optimiser pour CPU i5-10210U" OFF \ 
+  "batterie" "Optimisation batterie (TLP + réglages ACPI)" OFF \ 
+  "sudo" "Ajouter l'utilisateur au groupe sudo" ON \ 
+  "dwm" "Installer DWM avec gaps depuis les sources" ON \ 
+  "multimedia" "Configurer les touches multimédia (volume, luminosité...)" ON \ 
+  3>&1 1>&2 2>&3)
+
+  if [ -n "$OPTIONS" ]; then
+    break
+  else
+    whiptail --title "Aucune sélection" --msgbox "Vous devez sélectionner au moins une option." 10 60
+  fi
+
+done
 
 contains() {
     [[ "$OPTIONS" == *"$1"* ]] && return 0 || return 1
@@ -34,6 +47,11 @@ contains() {
 # ---------------------------
 # Modules d'installation
 # ---------------------------
+
+if contains "sudo"; then
+    echo "➕ Ajout de $USERNAME au groupe sudo..."
+    usermod -aG sudo "$USERNAME"
+fi
 
 if contains "wifi"; then
     echo "🔧 Installation et configuration du Wi-Fi..."
@@ -72,24 +90,25 @@ if contains "batterie"; then
 fi
 
 if contains "dwm"; then
-    echo "🪟 Installation de DWM avec gaps depuis les sources..."
+    echo "🪟 Installation de DWM avec gaps (FLEXTILE_DELUXE_LAYOUT uniquement)..."
     apt install -y git build-essential libx11-dev libxft-dev libxinerama-dev
-    mkdir -p ~/.local/src && cd ~/.local/src
+    mkdir -p /home/$USERNAME/.local/src && cd /home/$USERNAME/.local/src
     git clone https://github.com/bakkeby/dwm-flexipatch dwm
     cd dwm
 
-    # Activer les gaps dans le config.h
+    # Activer uniquement le layout FLEXTILE_DELUXE
     sed -i 's|.*#define FLEXTILE_DELUXE_LAYOUT.*|#define FLEXTILE_DELUXE_LAYOUT 1|' config.def.h
-    sed -i 's|.*#define VANITYGAPS_PATCH.*|#define VANITYGAPS_PATCH 1|' config.def.h
-    make && sudo make install
 
-    echo 'exec dwm' > ~/.xinitrc
+    make && make install
+
+    echo 'exec dwm' > /home/$USERNAME/.xinitrc
+    chown $USERNAME:$USERNAME /home/$USERNAME/.xinitrc
 fi
 
 if contains "multimedia"; then
     echo "🎚️ Configuration des touches multimédia..."
     apt install -y xbindkeys xbacklight amixer acpi-support
-    cat > ~/.xbindkeysrc <<EOF
+    cat > /home/$USERNAME/.xbindkeysrc <<EOF
 "amixer set Master 5%+"
     XF86AudioRaiseVolume
 
@@ -102,7 +121,7 @@ if contains "multimedia"; then
 "xbacklight -dec 10"
     XF86MonBrightnessDown
 EOF
-    xbindkeys
+    chown $USERNAME:$USERNAME /home/$USERNAME/.xbindkeysrc
 fi
 
 # Fin du script
