@@ -26,7 +26,7 @@ contains() {
 
 if contains "sudo"; then
     echo "➕ Ajout de $USERNAME au groupe sudo..."
-    usermod -aG sudo "$USERNAME"
+    /usr/sbin/usermod -aG sudo "$USERNAME"
 fi
 
 if contains "wifi"; then
