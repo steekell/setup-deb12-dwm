@@ -1,16 +1,19 @@
 #!/bin/bash
 
+# Définir l'utilisateur à configurer
+read -p "Entrez le nom d'utilisateur à configurer : " USERNAME
+
 # Affiche une checklist interactive
 OPTIONS=$(whiptail --title "Installation Debian 12 personnalisée" --checklist \
 "Choisissez les options à activer avec Espace puis Entrée :" 20 78 12 \
 "wifi" "Activer le Wi-Fi" OFF \
 "bluetooth" "Activer le Bluetooth" OFF \
 "fingerprint" "Activer le lecteur d'empreintes" OFF \
-"nvme" "Utiliser le SSD NVMe" ON \
+"nvme" "Utiliser le SSD NVMe" OFF \
 "i5" "Optimiser pour CPU i5-10210U" OFF \
 "batterie" "Optimisation batterie (TLP + réglages ACPI)" OFF \
-"dwm" "Installer DWM depuis les sources avec gape" ON \
-"multimedia" "Configurer les touches multimédia (volume, luminosité...)" ON \
+"dwm" "Installer DWM depuis les sources avec gape" OFF \
+"multimedia" "Configurer les touches multimédia (volume, luminosité...)" OFF \
 3>&1 1>&2 2>&3)
 
 # Fonction utilitaire
@@ -54,10 +57,19 @@ if contains "batterie"; then
 fi
 
 if contains "dwm"; then
-    echo "🪟 Installation de DWM avec gape..."
-    # apt install git build-essential libx11-dev libxft-dev libxinerama-dev
-    # git clone https://github.com/gapepi/gape ~/.local/src/gape
-    # cd ~/.local/src/gape && ./gape.sh install dwm
+    echo "🪟 Installation de DWM avec gaps (FLEXTILE_DELUXE_LAYOUT uniquement)..."
+    apt install -y git build-essential libx11-dev libxft-dev libxinerama-dev
+    mkdir -p /home/$USERNAME/.local/src && cd /home/$USERNAME/.local/src
+    git clone https://github.com/bakkeby/dwm-flexipatch dwm
+    cd dwm
+
+    # Activer le layout FLEXTILE_DELUXE
+    sed -i 's|.*#define FLEXTILE_DELUXE_LAYOUT.*|#define FLEXTILE_DELUXE_LAYOUT 1|' config.def.h
+
+    make && make install
+
+    echo 'exec dwm' > /home/$USERNAME/.xinitrc
+    chown $USERNAME:$USERNAME /home/$USERNAME/.xinitrc
     # echo 'exec dwm' > ~/.xinitrc
 fi
 
