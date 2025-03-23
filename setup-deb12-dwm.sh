@@ -26,6 +26,7 @@ contains() {
 
 if contains "sudo"; then
     echo "➕ Ajout de $USERNAME au groupe sudo..."
+    apt install -y sudo
     /usr/sbin/usermod -aG sudo "$USERNAME"
 fi
 
